@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>আমার শপ</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5fb;--card:#fff;--ink:#1b1f3b;--mut:#6b7090;--line:#e3e5f1;--acc:#4338ca;--hot:#f59e0b;--red:#e11d48}
+:root[data-theme=dark]{--bg:#12142a;--card:#1c1f3d;--ink:#eef0ff;--mut:#9aa0c8;--line:#2d315a;--acc:#8b87ff}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Hind Siliguri',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+.wrap{max-width:1100px;margin:auto;padding:0 16px}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{display:flex;align-items:center;gap:12px;height:62px}
+.logo{font-weight:700;font-size:22px;color:var(--acc);flex:1}
+.ib{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 12px}
+.hero{padding:28px 0 8px}
+.hero h1{font-size:clamp(26px,5vw,40px);line-height:1.2;max-width:14em}
+.hero p{color:var(--mut);margin-top:6px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+.tools input,.tools select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.tools input{flex:1;min-width:180px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 14px;white-space:nowrap}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;padding:14px 0 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.card img,.ph{width:100%;aspect-ratio:1;object-fit:cover;background:var(--line);cursor:pointer}
+.ph{display:grid;place-items:center;font-size:42px;color:var(--mut)}
+.body{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.body h3{font-size:16px;font-weight:600}
+.cat{font-size:12px;color:var(--mut)}
+.price{font-weight:700;font-size:18px}
+.price s{font-weight:400;font-size:13px;color:var(--mut);margin-left:6px}
+.badge{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-size:12px;font-weight:600;border-radius:6px;padding:1px 8px}
+.heart{position:absolute;top:8px;right:8px;background:var(--card);border-radius:50%;width:34px;height:34px;font-size:17px}
+.order{background:var(--acc);color:#fff;border-radius:10px;padding:9px;margin-top:auto;font-weight:600}
+.order.alt{background:#16a34a}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:50px 0}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:14px;z-index:20}
+.modal.open{display:flex}
+.sheet{background:var(--card);border-radius:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px}
+.sheet img{width:100%;border-radius:12px;margin-bottom:10px}
+.sheet label{display:block;font-size:13px;color:var(--mut);margin-top:10px}
+.sheet input,.sheet textarea,.sheet select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.row>*{flex:1}
+.ghost{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px}
+.del{background:var(--red);color:#fff;border-radius:10px;padding:9px}
+.adm{display:none;background:var(--ink);color:var(--bg)}
+body.admin .adm{display:block}
+.adm .wrap{display:flex;gap:8px;flex-wrap:wrap;padding:10px 16px}
+.adm button{background:var(--hot);color:#111;border-radius:8px;padding:6px 12px;font-weight:600}
+.ed{position:absolute;bottom:10px;right:10px;display:none;gap:6px}
+body.admin .ed{display:flex}
+.ed button{background:var(--ink);color:var(--bg);border-radius:8px;padding:2px 9px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:99px;opacity:0;transition:.3s;z-index:30;pointer-events:none}
+.toast.on{opacity:1}
+footer{text-align:center;color:var(--mut);padding:24px;border-top:1px solid var(--line)}
+.sh{font-size:26px;margin:10px 0 2px}.sp{color:var(--mut)}
+#svcSec{border-top:1px solid var(--line);margin-top:10px;padding-top:26px}
+.svc{padding:16px;gap:6px;display:flex;flex-direction:column}
+.svc .ic{font-size:34px}.svc h3{font-size:18px}.svc p{color:var(--mut);font-size:14px;flex:1}
+.soc{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.soc a{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--ink);text-decoration:none}
+.soc a b{display:none;color:var(--red);margin-left:6px;cursor:pointer}
+body.admin .soc a b{display:inline}
+nav a.ib{text-decoration:none;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="adm"><div class="wrap">
+  <button onclick="openForm()">+ নতুন পণ্য</button>
+  <button onclick="svcForm()">+ নতুন সার্ভিস</button>
+  <button onclick="addSocial()">+ সোশ্যাল লিংক</button>
+  <button onclick="exportData()">data.json ডাউনলোড</button>
+  <button onclick="document.getElementById('imp').click()">ইমপোর্ট</button>
+  <button onclick="logout()">অ্যাডমিন বন্ধ</button>
+  <input type="file" id="imp" accept=".json" hidden>
+</div></div>
+
+<header><div class="wrap bar">
+  <div class="logo" id="logo"></div>
+  <a class="ib" id="svcLink" href="#svcSec" style="text-decoration:none;color:inherit">সার্ভিস</a>
+  <button class="ib" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <button class="ib" id="favBtn" onclick="toggleFavView()">♡ <span id="favN">0</span></button>
+</div></header>
+
+<main class="wrap">
+  <section class="hero"><h1 id="tagline"></h1><p id="sub"></p></section>
+  <div class="tools">
+    <input id="q" type="search" placeholder="পণ্য খুঁজুন...">
+    <select id="sort"><option value="new">নতুন আগে</option><option value="low">দাম কম</option><option value="high">দাম বেশি</option></select>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+  <section id="svcSec"><h2 class="sh">ফ্রিল্যান্সিং সার্ভিস</h2><p class="sp">প্রফেশনাল কাজ, সাশ্রয়ী দামে। জানতে WhatsApp-এ মেসেজ দিন।</p><div class="grid" id="svcGrid"></div></section>
+</main>
+<footer><div class="soc" id="soc"></div><div id="foot"></div></footer>
+
+<div class="modal" id="viewM" onclick="if(event.target===this)closeM('viewM')"><div class="sheet" id="viewB"></div></div>
+<div class="modal" id="formM"><div class="sheet" id="formB"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ ১. সেটিংস — এখানে বদলালেই সাইট বদলাবে ============ */
+const CONFIG = {
+  shopName: "ABUBOKOR CREATIONS",
+  tagline: "পছন্দের পণ্য ও প্রফেশনাল ডিজিটাল সার্ভিস",
+  subtitle: "অর্ডার করতে পণ্যের নিচের বাটনে চাপ দিন।",
+  whatsapp: "8801968975869",   // দেশের কোডসহ নম্বর, + ছাড়া
+  email: "md.abubokorsiddikakonofficial@gmail.com",
+  currency: "৳",
+  salt: "abubokor-shop-2026:",
+  adminPassHash: "b2f2fa037ea1b864b45f4f60300f862a3c4b2f5d81094d83e8d597d257860420",   // পাসওয়ার্ড কোডে সরাসরি নেই, শুধু হ্যাশ আছে
+  adminHash: "#admin",   // ঠিকানার শেষে এটা লিখলে অ্যাডমিন লগইন আসবে
+  /* সোশ্যাল অ্যাকাউন্ট: নতুন লাইন যোগ করলেই বাড়বে (অ্যাডমিন থেকেও যোগ করা যায়) */
+  socials: [
+    { name: "Facebook", url: "https://www.facebook.com/share/1C6SUUDmSa/" },
+    { name: "YouTube", url: "https://youtube.com/@abubokorcreations" },
+    { name: "TikTok", url: "https://www.tiktok.com/@abubokorcreations" }
+  ]
+};
+/* ============ ২. ফিচার সুইচ — true/false করে অন/অফ ============ */
+const FEATURES = {
+  search: true, categories: true, sort: true,
+  wishlist: true, darkMode: true,
+  services: true, discountBadge: true, whatsappOrder: true, share: true
+};
+
+/* ============ ৩. ডেটা ============ */
+const KEY = 'shop_data_v2';
+const DEFAULT_SERVICES = [
+  { id: 1, icon: '🎨', title: 'গ্রাফিক্স ডিজাইন', desc: 'লোগো, ব্যানার, পোস্টার, সোশ্যাল মিডিয়া ডিজাইন।', price: 300 },
+  { id: 2, icon: '🎬', title: 'ভিডিও এডিটিং', desc: 'ইউটিউব, রিলস ও টিকটক ভিডিও এডিটিং।', price: 500 },
+  { id: 3, icon: '📈', title: 'ডিজিটাল মার্কেটিং', desc: 'ফেসবুক পেজ, বিজ্ঞাপন ও অনলাইন প্রচার।', price: 1000 }
+];
+let services = [], socials = [];
+let products = [], cat = 'সব', favOnly = false;
+let favs = JSON.parse(localStorage.getItem('shop_favs') || '[]');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const bn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ products, services, socials })); } catch (e) { toast('ছবি বেশি বড়, ছোট ছবি দিন'); } };
+
+async function load() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (!d) { try { d = await (await fetch('data.json')).json(); } catch (e) {} }
+  d = d || {};
+  products = d.products || []; services = d.services || DEFAULT_SERVICES; socials = d.socials || CONFIG.socials;
+  init();
+}
+
+function init() {
+  $('logo').textContent = CONFIG.shopName; document.title = CONFIG.shopName;
+  $('tagline').textContent = CONFIG.tagline; $('sub').textContent = CONFIG.subtitle;
+  $('foot').innerHTML = '© ' + esc(CONFIG.shopName) + (CONFIG.email ? ' · <a href="mailto:' + esc(CONFIG.email) + '" style="color:inherit">' + esc(CONFIG.email) + '</a>' : '');
+  if (!FEATURES.services) { $('svcSec').style.display = 'none'; $('svcLink').style.display = 'none'; }
+  if (!FEATURES.search) $('q').style.display = 'none';
+  if (!FEATURES.sort) $('sort').style.display = 'none';
+  if (!FEATURES.wishlist) $('favBtn').style.display = 'none';
+  if (!FEATURES.darkMode) $('themeBtn').style.display = 'none';
+  if (localStorage.getItem('shop_theme') === 'dark') setTheme('dark');
+  if (sessionStorage.getItem('adm') === '1') document.body.classList.add('admin');
+  $('q').oninput = render; $('sort').onchange = render;
+  $('imp').onchange = importData;
+  if (location.hash === CONFIG.adminHash && !document.body.classList.contains('admin')) login();
+  render();
+}
+
+/* ============ ৪. দেখানো ============ */
+function render() {
+  const cats = ['সব', ...new Set(products.map(p => p.category).filter(Boolean))];
+  $('chips').innerHTML = FEATURES.categories && cats.length > 1
+    ? cats.map(c => `<button class="chip ${c === cat ? 'on' : ''}" onclick="cat='${esc(c)}';render()">${esc(c)}</button>`).join('') : '';
+  const q = $('q').value.trim().toLowerCase();
+  let list = products.filter(p =>
+    (cat === 'সব' || p.category === cat) &&
+    (!favOnly || favs.includes(p.id)) &&
+    (!q || (p.title + ' ' + (p.desc || '')).toLowerCase().includes(q)));
+  const s = $('sort').value;
+  if (s === 'low') list.sort((a, b) => (a.price || 0) - (b.price || 0));
+  else if (s === 'high') list.sort((a, b) => (b.price || 0) - (a.price || 0));
+  else list.sort((a, b) => b.id - a.id);
+  $('favN').textContent = bn(favs.length);
+  renderExtra();
+  $('grid').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">কোনো পণ্য পাওয়া যায়নি।</div>';
+}
+
+function card(p) {
+  const off = FEATURES.discountBadge && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+  return `<article class="card">
+    ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onclick="view(${p.id})">` : `<div class="ph" onclick="view(${p.id})">🛍️</div>`}
+    ${off ? `<span class="badge">${bn(off)}% ছাড়</span>` : ''}
+    ${FEATURES.wishlist ? `<button class="heart" onclick="fav(${p.id})" aria-label="পছন্দের তালিকা">${favs.includes(p.id) ? '❤️' : '🤍'}</button>` : ''}
+    <div class="body">
+      ${p.category ? `<span class="cat">${esc(p.category)}</span>` : ''}
+      <h3>${esc(p.title)}</h3>
+      ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${off ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}
+      ${FEATURES.whatsappOrder ? `<button class="order alt" onclick="order(${p.id})">অর্ডার করুন</button>` : `<button class="order" onclick="view(${p.id})">বিস্তারিত</button>`}
+    </div>
+    <div class="ed"><button onclick="openForm(${p.id})">এডিট</button></div>
+  </article>`;
+}
+
+function view(id) {
+  const p = products.find(x => x.id === id); if (!p) return;
+  $('viewB').innerHTML = `${p.image ? `<img src="${esc(p.image)}" alt="">` : ''}
+    <h2>${esc(p.title)}</h2>
+    ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${p.oldPrice > p.price ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}
+    <p style="margin-top:8px;white-space:pre-wrap;color:var(--mut)">${esc(p.desc || '')}</p>
+    <div class="row">
+      ${FEATURES.whatsappOrder ? `<button class="order alt" onclick="order(${p.id})">অর্ডার করুন</button>` : ''}
+      ${FEATURES.share ? `<button class="ghost" onclick="share(${p.id})">শেয়ার</button>` : ''}
+      <button class="ghost" onclick="closeM('viewM')">বন্ধ</button>
+    </div>`;
+  $('viewM').classList.add('open');
+}
+
+/* ============ ৫. কাস্টমার অ্যাকশন ============ */
+function order(id) {
+  const p = products.find(x => x.id === id);
+  const msg = `আসসালামু আলাইকুম, আমি এই পণ্যটি অর্ডার করতে চাই:\n${p.title}${p.price ? '\nদাম: ' + CONFIG.currency + bn(p.price) : ''}`;
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+function fav(id) {
+  favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+  localStorage.setItem('shop_favs', JSON.stringify(favs)); render();
+}
+function toggleFavView() { favOnly = !favOnly; $('favBtn').style.background = favOnly ? 'var(--hot)' : ''; render(); }
+function share(id) {
+  const p = products.find(x => x.id === id);
+  if (navigator.share) navigator.share({ title: p.title, url: location.href.split('#')[0] }).catch(() => {});
+  else { navigator.clipboard?.writeText(location.href.split('#')[0]); toast('লিংক কপি হয়েছে'); }
+}
+function setTheme(t) { document.documentElement.dataset.theme = t; $('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙'; localStorage.setItem('shop_theme', t); }
+function toggleTheme() { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); }
+function closeM(id) { $(id).classList.remove('open'); }
+function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2200); }
+
+/* ============ ৬. অ্যাডমিন ============ */
+async function sha(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+async function login() {
+  const p = prompt('অ্যাডমিন পাসওয়ার্ড দিন'); if (!p) return;
+  if (await sha(CONFIG.salt + p) === CONFIG.adminPassHash) { sessionStorage.setItem('adm', '1'); document.body.classList.add('admin'); toast('অ্যাডমিন চালু'); }
+  else toast('পাসওয়ার্ড ভুল');
+}
+function logout() { sessionStorage.removeItem('adm'); document.body.classList.remove('admin'); history.replaceState(null, '', location.pathname); }
+
+function openForm(id) {
+  const p = products.find(x => x.id === id) || {};
+  $('formB').innerHTML = `<h3>${id ? 'পণ্য এডিট' : 'নতুন পণ্য'}</h3>
+    <label>সোর্স লিংক (শুধু আপনি দেখবেন, কাস্টমার না)</label><input id="f_link" value="${esc(p.sourceLink)}" placeholder="https://...">
+    <label>পণ্যের নাম</label><input id="f_title" value="${esc(p.title)}" placeholder="খালি রাখলে 'নতুন পণ্য' হবে">
+    <label>ছবি (লিংক অথবা ফাইল)</label><input id="f_img" value="${p.image && !p.image.startsWith('data:') ? esc(p.image) : ''}" placeholder="https://...jpg">
+    <input type="file" id="f_file" accept="image/*" style="margin-top:6px">
+    <div class="row"><div><label>বিক্রয় মূল্য</label><input id="f_price" type="number" value="${p.price || ''}"></div>
+    <div><label>আগের দাম (ঐচ্ছিক)</label><input id="f_old" type="number" value="${p.oldPrice || ''}"></div></div>
+    <label>ক্যাটাগরি</label><input id="f_cat" value="${esc(p.category)}">
+    <label>বিবরণ</label><textarea id="f_desc" rows="4">${esc(p.desc)}</textarea>
+    <div class="row">
+      <button class="order" onclick="saveForm(${id || 0})">সেভ</button>
+      ${id ? `<button class="del" onclick="delP(${id})">মুছুন</button>` : ''}
+      <button class="ghost" onclick="closeM('formM')">বাতিল</button>
+    </div>`;
+  $('formM').classList.add('open');
+}
+
+function shrink(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => {
+      const k = Math.min(1, 700 / im.width), c = document.createElement('canvas');
+      c.width = im.width * k; c.height = im.height * k;
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .8));
+    }; im.src = r.result; };
+    r.readAsDataURL(file);
+  });
+}
+
+async function saveForm(id) {
+  const f = $('f_file').files[0];
+  const img = f ? await shrink(f) : ($('f_img').value.trim() || (products.find(x => x.id === id) || {}).image || '');
+  const d = {
+    sourceLink: $('f_link').value.trim(), title: $('f_title').value.trim() || 'নতুন পণ্য', image: img,
+    price: +$('f_price').value || 0, oldPrice: +$('f_old').value || 0,
+    category: $('f_cat').value.trim(), desc: $('f_desc').value.trim()
+  };
+  if (id) Object.assign(products.find(x => x.id === id), d);
+  else products.push({ id: Date.now(), ...d });
+  save(); closeM('formM'); render(); toast('সেভ হয়েছে');
+}
+function delP(id) { if (confirm('মুছে ফেলবেন?')) { products = products.filter(x => x.id !== id); save(); closeM('formM'); render(); } }
+
+function exportData() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ products, services, socials }, null, 1)], { type: 'application/json' }));
+  a.download = 'data.json'; a.click();
+}
+function importData(e) {
+  const r = new FileReader();
+  r.onload = () => { try { const d = JSON.parse(r.result); products = d.products || []; services = d.services || DEFAULT_SERVICES; socials = d.socials || CONFIG.socials; save(); render(); toast('ইমপোর্ট হয়েছে'); } catch (x) { toast('ফাইল ঠিক নেই'); } };
+  r.readAsText(e.target.files[0]);
+}
+/* ============ সার্ভিস ও সোশ্যাল ============ */
+function renderExtra() {
+  $('svcGrid').innerHTML = services.length ? services.map(v => `<article class="card svc">
+    <div class="ic">${esc(v.icon || '💼')}</div><h3>${esc(v.title)}</h3><p>${esc(v.desc)}</p>
+    ${v.price ? `<div class="price">শুরু ${CONFIG.currency}${bn(v.price)}</div>` : ''}
+    <button class="order alt" onclick="orderSvc(${v.id})">কাজ বুঝিয়ে দিন</button>
+    <div class="ed"><button onclick="svcForm(${v.id})">এডিট</button></div></article>`).join('') : '<div class="empty">শীঘ্রই আসছে।</div>';
+  $('soc').innerHTML = socials.map((s, i) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}<b onclick="event.preventDefault();delSocial(${i})">×</b></a>`).join('');
+}
+function orderSvc(id) {
+  const v = services.find(x => x.id === id);
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('আসসালামু আলাইকুম, আমি এই সার্ভিসটি নিতে চাই: ' + v.title)}`, '_blank');
+}
+function svcForm(id) {
+  const v = services.find(x => x.id === id) || {};
+  $('formB').innerHTML = `<h3>${id ? 'সার্ভিস এডিট' : 'নতুন সার্ভিস'}</h3>
+    <label>আইকন (একটা ইমোজি)</label><input id="s_ic" value="${esc(v.icon || '💼')}">
+    <label>সার্ভিসের নাম</label><input id="s_t" value="${esc(v.title)}">
+    <label>বিবরণ</label><textarea id="s_d" rows="3">${esc(v.desc)}</textarea>
+    <label>শুরুর দাম (ঐচ্ছিক)</label><input id="s_p" type="number" value="${v.price || ''}">
+    <div class="row"><button class="order" onclick="saveSvc(${id || 0})">সেভ</button>
+    ${id ? `<button class="del" onclick="delSvc(${id})">মুছুন</button>` : ''}<button class="ghost" onclick="closeM('formM')">বাতিল</button></div>`;
+  $('formM').classList.add('open');
+}
+function saveSvc(id) {
+  const d = { icon: $('s_ic').value.trim(), title: $('s_t').value.trim() || 'নতুন সার্ভিস', desc: $('s_d').value.trim(), price: +$('s_p').value || 0 };
+  if (id) Object.assign(services.find(x => x.id === id), d); else services.push({ id: Date.now(), ...d });
+  save(); closeM('formM'); render(); toast('সেভ হয়েছে');
+}
+function delSvc(id) { if (confirm('মুছে ফেলবেন?')) { services = services.filter(x => x.id !== id); save(); closeM('formM'); render(); } }
+function addSocial() {
+  const name = prompt('অ্যাকাউন্টের নাম (যেমন Instagram)'); if (!name) return;
+  const url = prompt('লিংক (https://...)'); if (!url) return;
+  socials.push({ name, url }); save(); render();
+}
+function delSocial(i) { if (confirm('এই লিংক মুছবেন?')) { socials.splice(i, 1); save(); render(); } }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeM('viewM'); closeM('formM'); } });
+load();
+</script>
+</body>
+</html>
