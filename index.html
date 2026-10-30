@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>আমার শপ</title>
+<title>ABUBOKOR CREATIONS</title>
+<meta name="description" content="ABUBOKOR CREATIONS — পছন্দের পণ্য এবং গ্রাফিক্স ডিজাইন, ভিডিও এডিটিং ও ডিজিটাল মার্কেটিং সার্ভিস।">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛍️</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f5fb;--card:#fff;--ink:#1b1f3b;--mut:#6b7090;--line:#e3e5f1;--acc:#4338ca;--hot:#f59e0b;--red:#e11d48}
@@ -69,6 +71,19 @@ footer{text-align:center;color:var(--mut);padding:24px;border-top:1px solid var(
 .soc a b{display:none;color:var(--red);margin-left:6px;cursor:pointer}
 body.admin .soc a b{display:inline}
 nav a.ib{text-decoration:none;color:var(--ink)}
+.ed{top:48px;right:8px;bottom:auto}
+.trust{display:flex;gap:8px;overflow-x:auto;margin:14px 0 0}
+.trust span{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 12px;white-space:nowrap;font-size:14px}
+.stk{font-size:12px;color:var(--red);font-weight:600}.stk.out{color:var(--mut)}
+.ci{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ci span:first-child{flex:1;font-size:14px}.qty{display:flex;align-items:center;gap:8px}
+.qty button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:28px;height:28px}
+.sum div{display:flex;justify-content:space-between;padding:3px 0}
+.sum .tot{font-weight:700;font-size:18px;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.pi{background:var(--bg);border:1px dashed var(--acc);border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
+#infoSec{border-top:1px solid var(--line);margin-top:26px;padding:26px 0 30px}
+#infoSec details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+#infoSec summary{font-weight:600;cursor:pointer}#infoSec p{color:var(--mut);margin-top:8px;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -88,10 +103,12 @@ nav a.ib{text-decoration:none;color:var(--ink)}
   <a class="ib" id="svcLink" href="#svcSec" style="text-decoration:none;color:inherit">সার্ভিস</a>
   <button class="ib" id="themeBtn" onclick="toggleTheme()">🌙</button>
   <button class="ib" id="favBtn" onclick="toggleFavView()">♡ <span id="favN">0</span></button>
+  <button class="ib" id="cartBtn" onclick="openCart()">🛒 <span id="cartN">0</span></button>
 </div></header>
 
 <main class="wrap">
   <section class="hero"><h1 id="tagline"></h1><p id="sub"></p></section>
+  <div class="trust" id="trust"></div>
   <div class="tools">
     <input id="q" type="search" placeholder="পণ্য খুঁজুন...">
     <select id="sort"><option value="new">নতুন আগে</option><option value="low">দাম কম</option><option value="high">দাম বেশি</option></select>
@@ -99,11 +116,13 @@ nav a.ib{text-decoration:none;color:var(--ink)}
   <div class="chips" id="chips"></div>
   <div class="grid" id="grid"></div>
   <section id="svcSec"><h2 class="sh">ফ্রিল্যান্সিং সার্ভিস</h2><p class="sp">প্রফেশনাল কাজ, সাশ্রয়ী দামে। জানতে WhatsApp-এ মেসেজ দিন।</p><div class="grid" id="svcGrid"></div></section>
+  <section id="infoSec"></section>
 </main>
 <footer><div class="soc" id="soc"></div><div id="foot"></div></footer>
 
 <div class="modal" id="viewM" onclick="if(event.target===this)closeM('viewM')"><div class="sheet" id="viewB"></div></div>
 <div class="modal" id="formM"><div class="sheet" id="formB"></div></div>
+<div class="modal" id="cartM" onclick="if(event.target===this)closeM('cartM')"><div class="sheet" id="cartB"></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -115,6 +134,18 @@ const CONFIG = {
   whatsapp: "8801968975869",   // দেশের কোডসহ নম্বর, + ছাড়া
   email: "md.abubokorsiddikakonofficial@gmail.com",
   currency: "৳",
+  deliveryInside: 70,        // ঢাকার ভেতরে ডেলিভারি চার্জ
+  deliveryOutside: 130,      // ঢাকার বাইরে
+  freeDeliveryOver: 0,       // এত টাকার বেশি কিনলে ডেলিভারি ফ্রি (0 = বন্ধ)
+  bkash: "01968975869",      // bKash নম্বর (ঠিক আছে কিনা দেখে নিন)
+  nagad: "01968975869",      // Nagad নম্বর
+  coupons: [{ code: "WELCOME10", percent: 10 }],   // নতুন কুপন এখানে যোগ করুন
+  pixelId: "",               // Facebook Pixel ID (থাকলে বসান)
+  gaId: "",                  // Google Analytics ID, যেমন G-XXXXXXX
+  trust: ["🚚 দ্রুত ডেলিভারি", "💵 ক্যাশ অন ডেলিভারি", "🔁 রিটার্ন সুবিধা", "💬 সাপোর্ট সবসময়"],
+  about: "ABUBOKOR CREATIONS একটি অনলাইন শপ ও ডিজিটাল সার্ভিস প্রতিষ্ঠান। আমরা মানসম্মত পণ্য এবং গ্রাফিক্স ডিজাইন, ভিডিও এডিটিং ও ডিজিটাল মার্কেটিং সার্ভিস দিয়ে থাকি।",
+  returnPolicy: "পণ্য হাতে পাওয়ার ৩ দিনের মধ্যে ত্রুটিপূর্ণ বা ভুল পণ্য হলে আমাদের জানান। যাচাই করে পণ্য বদলে বা টাকা ফেরত দেওয়া হবে।",
+  deliveryInfo: "ঢাকার ভেতরে ১-২ দিন, ঢাকার বাইরে ২-৫ দিনে ডেলিভারি দেওয়া হয়। অর্ডার নিশ্চিত করতে আমরা ফোনে বা WhatsApp-এ যোগাযোগ করব।",
   salt: "abubokor-shop-2026:",
   adminPassHash: "b2f2fa037ea1b864b45f4f60300f862a3c4b2f5d81094d83e8d597d257860420",   // পাসওয়ার্ড কোডে সরাসরি নেই, শুধু হ্যাশ আছে
   adminHash: "#admin",   // ঠিকানার শেষে এটা লিখলে অ্যাডমিন লগইন আসবে
@@ -129,7 +160,7 @@ const CONFIG = {
 const FEATURES = {
   search: true, categories: true, sort: true,
   wishlist: true, darkMode: true,
-  services: true, discountBadge: true, whatsappOrder: true, share: true
+  services: true, cart: true, coupons: true, stock: true, trust: true, info: true, discountBadge: true, whatsappOrder: true, share: true
 };
 
 /* ============ ৩. ডেটা ============ */
@@ -140,6 +171,7 @@ const DEFAULT_SERVICES = [
   { id: 3, icon: '📈', title: 'ডিজিটাল মার্কেটিং', desc: 'ফেসবুক পেজ, বিজ্ঞাপন ও অনলাইন প্রচার।', price: 1000 }
 ];
 let services = [], socials = [];
+let cart = JSON.parse(localStorage.getItem('shop_cart') || '{}'), coupon = null;
 let products = [], cat = 'সব', favOnly = false;
 let favs = JSON.parse(localStorage.getItem('shop_favs') || '[]');
 const $ = id => document.getElementById(id);
@@ -167,6 +199,7 @@ function init() {
   if (!FEATURES.darkMode) $('themeBtn').style.display = 'none';
   if (localStorage.getItem('shop_theme') === 'dark') setTheme('dark');
   if (sessionStorage.getItem('adm') === '1') document.body.classList.add('admin');
+  initExtras();
   $('q').oninput = render; $('sort').onchange = render;
   $('imp').onchange = importData;
   if (location.hash === CONFIG.adminHash && !document.body.classList.contains('admin')) login();
@@ -189,6 +222,7 @@ function render() {
   else list.sort((a, b) => b.id - a.id);
   $('favN').textContent = bn(favs.length);
   renderExtra();
+  $('cartN').textContent = bn(cartCount());
   $('grid').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">কোনো পণ্য পাওয়া যায়নি।</div>';
 }
 
@@ -202,7 +236,7 @@ function card(p) {
       ${p.category ? `<span class="cat">${esc(p.category)}</span>` : ''}
       <h3>${esc(p.title)}</h3>
       ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${off ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}
-      ${FEATURES.whatsappOrder ? `<button class="order alt" onclick="order(${p.id})">অর্ডার করুন</button>` : `<button class="order" onclick="view(${p.id})">বিস্তারিত</button>`}
+      ${buyBtn(p)}
     </div>
     <div class="ed"><button onclick="openForm(${p.id})">এডিট</button></div>
   </article>`;
@@ -262,6 +296,7 @@ function openForm(id) {
     <div class="row"><div><label>বিক্রয় মূল্য</label><input id="f_price" type="number" value="${p.price || ''}"></div>
     <div><label>আগের দাম (ঐচ্ছিক)</label><input id="f_old" type="number" value="${p.oldPrice || ''}"></div></div>
     <label>ক্যাটাগরি</label><input id="f_cat" value="${esc(p.category)}">
+    <label>স্টক (খালি = সীমাহীন, ০ = স্টক শেষ)</label><input id="f_stock" type="number" value="${p.stock ?? ''}">
     <label>বিবরণ</label><textarea id="f_desc" rows="4">${esc(p.desc)}</textarea>
     <div class="row">
       <button class="order" onclick="saveForm(${id || 0})">সেভ</button>
@@ -289,7 +324,7 @@ async function saveForm(id) {
   const d = {
     sourceLink: $('f_link').value.trim(), title: $('f_title').value.trim() || 'নতুন পণ্য', image: img,
     price: +$('f_price').value || 0, oldPrice: +$('f_old').value || 0,
-    category: $('f_cat').value.trim(), desc: $('f_desc').value.trim()
+    category: $('f_cat').value.trim(), stock: $('f_stock').value === '' ? null : +$('f_stock').value, desc: $('f_desc').value.trim()
   };
   if (id) Object.assign(products.find(x => x.id === id), d);
   else products.push({ id: Date.now(), ...d });
@@ -343,6 +378,88 @@ function addSocial() {
   socials.push({ name, url }); save(); render();
 }
 function delSocial(i) { if (confirm('এই লিংক মুছবেন?')) { socials.splice(i, 1); save(); render(); } }
+/* ============ কার্ট, অর্ডার, পেমেন্ট ============ */
+const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
+const cartSave = () => { localStorage.setItem('shop_cart', JSON.stringify(cart)); render(); };
+function track(ev, d) { try { window.fbq && fbq('track', ev, d || {}); window.gtag && gtag('event', ev, d || {}); } catch (e) {} }
+function buyBtn(p) {
+  const out = FEATURES.stock && p.stock === 0, low = FEATURES.stock && p.stock > 0 && p.stock <= 3;
+  const lab = out ? '<span class="stk out">স্টক শেষ</span>' : low ? `<span class="stk">মাত্র ${bn(p.stock)}টি আছে</span>` : '';
+  if (out) return lab + '<button class="order" disabled style="opacity:.5">স্টক শেষ</button>';
+  if (FEATURES.cart) return lab + `<button class="order" onclick="addCart(${p.id})">🛒 কার্টে যোগ করুন</button>`;
+  if (FEATURES.whatsappOrder) return lab + `<button class="order alt" onclick="order(${p.id})">অর্ডার করুন</button>`;
+  return lab + `<button class="order" onclick="view(${p.id})">বিস্তারিত</button>`;
+}
+function addCart(id) {
+  const p = products.find(x => x.id === id), q = (cart[id] || 0) + 1;
+  if (p.stock != null && q > p.stock) return toast('এর বেশি স্টকে নেই');
+  cart[id] = q; cartSave(); track('AddToCart', { content_name: p.title }); toast('কার্টে যোগ হয়েছে');
+}
+function chg(id, d) {
+  const p = products.find(x => x.id === id), q = (cart[id] || 0) + d;
+  if (q <= 0) delete cart[id]; else if (p.stock != null && q > p.stock) return toast('এর বেশি স্টকে নেই'); else cart[id] = q;
+  cartSave(); cartItems().length ? renderSum() : openCart();
+}
+const cartItems = () => Object.keys(cart).map(k => ({ p: products.find(x => x.id == k), q: cart[k] })).filter(i => i.p);
+function totals() {
+  const it = cartItems(), sub = it.reduce((s, i) => s + (i.p.price || 0) * i.q, 0);
+  const area = $('c_area') ? $('c_area').value : 'in';
+  const free = CONFIG.freeDeliveryOver > 0 && sub >= CONFIG.freeDeliveryOver;
+  const dv = free || !it.length ? 0 : (area === 'in' ? CONFIG.deliveryInside : CONFIG.deliveryOutside);
+  const disc = coupon ? Math.round(sub * coupon.percent / 100) : 0;
+  return { it, sub, dv, disc, total: sub + dv - disc };
+}
+function openCart() {
+  if (!cartItems().length) {
+    $('cartB').innerHTML = '<h3>কার্ট খালি</h3><p style="color:var(--mut);margin:8px 0">পণ্য বেছে "কার্টে যোগ করুন" চাপুন।</p><button class="ghost" style="width:100%" onclick="closeM(\'cartM\')">দোকানে ফিরুন</button>';
+  } else {
+    $('cartB').innerHTML = `<h3>আপনার কার্ট</h3><div id="c_items"></div><div class="sum" id="c_sum"></div>
+    ${FEATURES.coupons ? '<div class="row"><input id="c_coupon" placeholder="কুপন কোড" style="flex:2"><button class="ghost" onclick="applyCoupon()">প্রয়োগ</button></div>' : ''}
+    <label>আপনার নাম</label><input id="c_name"><label>মোবাইল নম্বর</label><input id="c_phone" type="tel" placeholder="01XXXXXXXXX">
+    <label>পুরো ঠিকানা</label><textarea id="c_addr" rows="2"></textarea>
+    <label>ডেলিভারি এলাকা</label><select id="c_area" onchange="renderSum()"><option value="in">ঢাকার ভেতরে</option><option value="out">ঢাকার বাইরে</option></select>
+    <label>পেমেন্ট পদ্ধতি</label><select id="c_pay" onchange="renderSum()"><option value="cod">ক্যাশ অন ডেলিভারি</option><option value="bkash">bKash</option><option value="nagad">Nagad</option></select>
+    <div id="c_payinfo"></div><div id="c_trxw" style="display:none"><label>Transaction ID</label><input id="c_trx"></div>
+    <div class="row"><button class="order alt" onclick="submitOrder()">অর্ডার নিশ্চিত করুন</button><button class="ghost" onclick="closeM('cartM')">বন্ধ</button></div>`;
+    renderSum();
+  }
+  $('cartM').classList.add('open');
+}
+function renderSum() {
+  const t = totals(), c = CONFIG.currency, m = n => c + bn(n);
+  $('c_items').innerHTML = t.it.map(i => `<div class="ci"><span>${esc(i.p.title)}</span><span class="qty"><button onclick="chg(${i.p.id},-1)">−</button>${bn(i.q)}<button onclick="chg(${i.p.id},1)">+</button></span><b>${m((i.p.price || 0) * i.q)}</b></div>`).join('');
+  $('c_sum').innerHTML = `<div><span>পণ্যের দাম</span><span>${m(t.sub)}</span></div><div><span>ডেলিভারি চার্জ</span><span>${t.dv ? m(t.dv) : 'ফ্রি'}</span></div>${t.disc ? `<div><span>কুপন ছাড়</span><span>−${m(t.disc)}</span></div>` : ''}<div class="tot"><span>সর্বমোট</span><span>${m(t.total)}</span></div>`;
+  const pay = $('c_pay').value;
+  $('c_trxw').style.display = pay === 'cod' ? 'none' : 'block';
+  $('c_payinfo').innerHTML = pay === 'cod' ? '<div class="pi">পণ্য হাতে পেয়ে টাকা দিন।</div>' : `<div class="pi">${pay === 'bkash' ? 'bKash' : 'Nagad'} (পার্সোনাল) নম্বর: <b>${esc(pay === 'bkash' ? CONFIG.bkash : CONFIG.nagad)}</b><br>"Send Money" করে <b>${m(t.total)}</b> পাঠান, তারপর নিচে Transaction ID দিন।</div>`;
+}
+function applyCoupon() {
+  const f = (CONFIG.coupons || []).find(x => x.code === ($('c_coupon').value || '').trim().toUpperCase());
+  coupon = f || null; toast(f ? `কুপন প্রযোজ্য: ${bn(f.percent)}% ছাড়` : 'কুপন সঠিক নয়'); renderSum();
+}
+function submitOrder() {
+  const name = $('c_name').value.trim(), phone = $('c_phone').value.trim(), addr = $('c_addr').value.trim(), pay = $('c_pay').value, trx = $('c_trx').value.trim();
+  if (!name || phone.replace(/\D/g, '').length < 11 || !addr) return toast('নাম, ১১ ডিজিটের নম্বর ও ঠিকানা দিন');
+  if (pay !== 'cod' && !trx) return toast('Transaction ID দিন');
+  const t = totals(), c = CONFIG.currency;
+  const msg = ['🛒 নতুন অর্ডার', `নাম: ${name}`, `ফোন: ${phone}`, `ঠিকানা: ${addr}`, `এলাকা: ${$('c_area').value === 'in' ? 'ঢাকার ভেতরে' : 'ঢাকার বাইরে'}`, '', 'পণ্য:',
+    ...t.it.map((i, n) => `${n + 1}. ${i.p.title} × ${i.q} = ${c}${(i.p.price || 0) * i.q}`), '',
+    `পণ্যের দাম: ${c}${t.sub}`, `ডেলিভারি: ${c}${t.dv}`, t.disc ? `ছাড় (${coupon.code}): -${c}${t.disc}` : '', `সর্বমোট: ${c}${t.total}`,
+    `পেমেন্ট: ${pay === 'cod' ? 'ক্যাশ অন ডেলিভারি' : pay + ' (TrxID: ' + trx + ')'}`].filter(x => x !== '').join('\n');
+  track('Purchase', { value: t.total, currency: 'BDT' });
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+  cart = {}; coupon = null; cartSave(); closeM('cartM'); toast('অর্ডার পাঠানো হয়েছে, ধন্যবাদ!');
+}
+function initExtras() {
+  if (!FEATURES.cart) $('cartBtn').style.display = 'none';
+  $('trust').innerHTML = FEATURES.trust ? CONFIG.trust.map(t => `<span>${esc(t)}</span>`).join('') : '';
+  $('infoSec').innerHTML = FEATURES.info ? `<h2 class="sh">আমাদের সম্পর্কে</h2>
+    <details open><summary>আমরা কারা</summary><p>${esc(CONFIG.about)}</p></details>
+    <details><summary>ডেলিভারি তথ্য</summary><p>${esc(CONFIG.deliveryInfo)}</p></details>
+    <details><summary>রিটার্ন ও রিফান্ড নীতি</summary><p>${esc(CONFIG.returnPolicy)}</p></details>` : '';
+  if (CONFIG.pixelId) { !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js'); fbq('init', CONFIG.pixelId); fbq('track', 'PageView'); }
+  if (CONFIG.gaId) { const g = document.createElement('script'); g.async = 1; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + CONFIG.gaId; document.head.appendChild(g); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); }; gtag('js', new Date()); gtag('config', CONFIG.gaId); }
+}
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeM('viewM'); closeM('formM'); } });
 load();
 </script>
