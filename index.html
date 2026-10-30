@@ -498,11 +498,16 @@ const ghApi = path => `https://api.github.com/repos/${GH.owner}/${GH.repo}/conte
 const b64 = t => btoa(unescape(encodeURIComponent(t)));
 async function ghPut(path, content, msg, tok) {
   const h = { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' };
-  let sha; const r = await fetch(ghApi(path) + '?ref=' + GH.branch, { headers: h });
-  if (r.ok) sha = (await r.json()).sha; else if (r.status === 401) throw new Error('টোকেন ভুল');
-  const w = await fetch(ghApi(path), { method: 'PUT', headers: h, body: JSON.stringify({ message: msg, content, branch: GH.branch, sha }) });
-  if (w.status === 401 || w.status === 403 || w.status === 404) throw new Error('টোকেন ভুল বা অনুমতি নেই');
-  if (!w.ok) throw new Error('GitHub ' + w.status);
+  for (let i = 0; i < 5; i++) {
+    let sha; const r = await fetch(ghApi(path) + '?ref=' + GH.branch + '&t=' + Date.now(), { headers: h, cache: 'no-store' });
+    if (r.ok) sha = (await r.json()).sha; else if (r.status === 401) throw new Error('টোকেন ভুল');
+    const w = await fetch(ghApi(path), { method: 'PUT', headers: h, body: JSON.stringify({ message: msg, content, branch: GH.branch, sha }) });
+    if (w.ok) return;
+    if (w.status === 409 || w.status === 422) { await new Promise(ok => setTimeout(ok, 1500 * (i + 1))); continue; }
+    if (w.status === 401 || w.status === 403 || w.status === 404) throw new Error('টোকেন ভুল বা অনুমতি নেই');
+    throw new Error('GitHub ' + w.status);
+  }
+  throw new Error('GitHub এখন ব্যস্ত, একটু পরে আবার চাপুন');
 }
 async function publish() {
   let tok = localStorage.getItem('gh_token');
