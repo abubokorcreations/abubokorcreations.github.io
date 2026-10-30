@@ -84,6 +84,11 @@ nav a.ib{text-decoration:none;color:var(--ink)}
 #infoSec{border-top:1px solid var(--line);margin-top:26px;padding:26px 0 30px}
 #infoSec details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
 #infoSec summary{font-weight:600;cursor:pointer}#infoSec p{color:var(--mut);margin-top:8px;white-space:pre-wrap}
+.rv{border-top:1px solid var(--line);padding:8px 0;font-size:14px}.rv a{color:var(--red);cursor:pointer;margin-left:6px}
+.rel{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rel div{cursor:pointer;font-size:13px;display:flex;flex-direction:column}
+.rel img{margin:0 0 4px;border-radius:8px;aspect-ratio:1;object-fit:cover}
+.ao{display:none}body.admin .ao{display:inline-block}.sh2{margin:16px 0 4px;font-size:16px}
 </style>
 </head>
 <body>
@@ -160,7 +165,7 @@ const CONFIG = {
 const FEATURES = {
   search: true, categories: true, sort: true,
   wishlist: true, darkMode: true,
-  services: true, cart: true, coupons: true, stock: true, trust: true, info: true, discountBadge: true, whatsappOrder: true, share: true
+  services: true, cart: true, coupons: true, stock: true, trust: true, info: true, reviews: true, related: true, flashSale: true, discountBadge: true, whatsappOrder: true, share: true
 };
 
 /* ============ ৩. ডেটা ============ */
@@ -212,7 +217,7 @@ function render() {
   $('chips').innerHTML = FEATURES.categories && cats.length > 1
     ? cats.map(c => `<button class="chip ${c === cat ? 'on' : ''}" onclick="cat='${esc(c)}';render()">${esc(c)}</button>`).join('') : '';
   const q = $('q').value.trim().toLowerCase();
-  let list = products.filter(p =>
+  let list = products.map(live).filter(p =>
     (cat === 'সব' || p.category === cat) &&
     (!favOnly || favs.includes(p.id)) &&
     (!q || (p.title + ' ' + (p.desc || '')).toLowerCase().includes(q)));
@@ -234,31 +239,34 @@ function card(p) {
     ${FEATURES.wishlist ? `<button class="heart" onclick="fav(${p.id})" aria-label="পছন্দের তালিকা">${favs.includes(p.id) ? '❤️' : '🤍'}</button>` : ''}
     <div class="body">
       ${p.category ? `<span class="cat">${esc(p.category)}</span>` : ''}
-      <h3>${esc(p.title)}</h3>
+      <h3>${esc(p.title)}</h3>${stars(p)}
       ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${off ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}
-      ${buyBtn(p)}
+      ${cdown(p)}${buyBtn(p)}
     </div>
     <div class="ed"><button onclick="openForm(${p.id})">এডিট</button></div>
   </article>`;
 }
 
 function view(id) {
-  const p = products.find(x => x.id === id); if (!p) return;
+  const p = getP(id); if (!p) return;
+  const rel = FEATURES.related ? products.filter(x => x.id !== id && (!p.category || x.category === p.category)).slice(0, 4).map(live) : [];
+  const rv = (p.reviews || []).map((r, i) => `<div class="rv"><b>${esc(r.name)}</b> ${'⭐'.repeat(r.rating)}<a class="ao" onclick="delReview(${id},${i})">×</a><br>${esc(r.text)}</div>`).join('');
   $('viewB').innerHTML = `${p.image ? `<img src="${esc(p.image)}" alt="">` : ''}
-    <h2>${esc(p.title)}</h2>
-    ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${p.oldPrice > p.price ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}
+    <h2>${esc(p.title)}</h2>${stars(p)}
+    ${p.price ? `<div class="price">${CONFIG.currency}${bn(p.price)}${p.oldPrice > p.price ? `<s>${bn(p.oldPrice)}</s>` : ''}</div>` : ''}${cdown(p)}
     <p style="margin-top:8px;white-space:pre-wrap;color:var(--mut)">${esc(p.desc || '')}</p>
-    <div class="row">
-      ${FEATURES.whatsappOrder ? `<button class="order alt" onclick="order(${p.id})">অর্ডার করুন</button>` : ''}
+    <div class="row">${buyBtn(p)}
+      ${FEATURES.cart && FEATURES.whatsappOrder ? `<button class="ghost" onclick="order(${p.id})">WhatsApp-এ অর্ডার</button>` : ''}
       ${FEATURES.share ? `<button class="ghost" onclick="share(${p.id})">শেয়ার</button>` : ''}
-      <button class="ghost" onclick="closeM('viewM')">বন্ধ</button>
-    </div>`;
+      <button class="ghost" onclick="closeM('viewM')">বন্ধ</button></div>
+    ${FEATURES.reviews ? `<h4 class="sh2">কাস্টমার রিভিউ</h4>${rv || '<p class="sp">এখনো কোনো রিভিউ নেই।</p>'}<button class="ghost ao" onclick="addReview(${id})">+ রিভিউ যোগ</button>` : ''}
+    ${rel.length ? `<h4 class="sh2">আরও পণ্য</h4><div class="rel">${rel.map(x => `<div onclick="view(${x.id})">${x.image ? `<img src="${esc(x.image)}" alt="">` : '<span style="font-size:40px">🛍️</span>'}<small>${esc(x.title)}</small><b>${CONFIG.currency}${bn(x.price || 0)}</b></div>`).join('')}</div>` : ''}`;
   $('viewM').classList.add('open');
 }
 
 /* ============ ৫. কাস্টমার অ্যাকশন ============ */
 function order(id) {
-  const p = products.find(x => x.id === id);
+  const p = getP(id);
   const msg = `আসসালামু আলাইকুম, আমি এই পণ্যটি অর্ডার করতে চাই:\n${p.title}${p.price ? '\nদাম: ' + CONFIG.currency + bn(p.price) : ''}`;
   window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
 }
@@ -268,7 +276,7 @@ function fav(id) {
 }
 function toggleFavView() { favOnly = !favOnly; $('favBtn').style.background = favOnly ? 'var(--hot)' : ''; render(); }
 function share(id) {
-  const p = products.find(x => x.id === id);
+  const p = getP(id);
   if (navigator.share) navigator.share({ title: p.title, url: location.href.split('#')[0] }).catch(() => {});
   else { navigator.clipboard?.writeText(location.href.split('#')[0]); toast('লিংক কপি হয়েছে'); }
 }
@@ -296,6 +304,7 @@ function openForm(id) {
     <div class="row"><div><label>বিক্রয় মূল্য</label><input id="f_price" type="number" value="${p.price || ''}"></div>
     <div><label>আগের দাম (ঐচ্ছিক)</label><input id="f_old" type="number" value="${p.oldPrice || ''}"></div></div>
     <label>ক্যাটাগরি</label><input id="f_cat" value="${esc(p.category)}">
+    <label>অফার শেষের সময় (ঐচ্ছিক। দাম = অফারের দাম, আগের দাম = আসল দাম)</label><input id="f_sale" type="datetime-local" value="${esc(p.saleEnd)}">
     <label>স্টক (খালি = সীমাহীন, ০ = স্টক শেষ)</label><input id="f_stock" type="number" value="${p.stock ?? ''}">
     <label>বিবরণ</label><textarea id="f_desc" rows="4">${esc(p.desc)}</textarea>
     <div class="row">
@@ -324,7 +333,7 @@ async function saveForm(id) {
   const d = {
     sourceLink: $('f_link').value.trim(), title: $('f_title').value.trim() || 'নতুন পণ্য', image: img,
     price: +$('f_price').value || 0, oldPrice: +$('f_old').value || 0,
-    category: $('f_cat').value.trim(), stock: $('f_stock').value === '' ? null : +$('f_stock').value, desc: $('f_desc').value.trim()
+    category: $('f_cat').value.trim(), saleEnd: $('f_sale').value || '', stock: $('f_stock').value === '' ? null : +$('f_stock').value, desc: $('f_desc').value.trim()
   };
   if (id) Object.assign(products.find(x => x.id === id), d);
   else products.push({ id: Date.now(), ...d });
@@ -391,16 +400,16 @@ function buyBtn(p) {
   return lab + `<button class="order" onclick="view(${p.id})">বিস্তারিত</button>`;
 }
 function addCart(id) {
-  const p = products.find(x => x.id === id), q = (cart[id] || 0) + 1;
+  const p = getP(id), q = (cart[id] || 0) + 1;
   if (p.stock != null && q > p.stock) return toast('এর বেশি স্টকে নেই');
   cart[id] = q; cartSave(); track('AddToCart', { content_name: p.title }); toast('কার্টে যোগ হয়েছে');
 }
 function chg(id, d) {
-  const p = products.find(x => x.id === id), q = (cart[id] || 0) + d;
+  const p = getP(id), q = (cart[id] || 0) + d;
   if (q <= 0) delete cart[id]; else if (p.stock != null && q > p.stock) return toast('এর বেশি স্টকে নেই'); else cart[id] = q;
   cartSave(); cartItems().length ? renderSum() : openCart();
 }
-const cartItems = () => Object.keys(cart).map(k => ({ p: products.find(x => x.id == k), q: cart[k] })).filter(i => i.p);
+const cartItems = () => Object.keys(cart).map(k => ({ p: getP(k), q: cart[k] })).filter(i => i.p);
 function totals() {
   const it = cartItems(), sub = it.reduce((s, i) => s + (i.p.price || 0) * i.q, 0);
   const area = $('c_area') ? $('c_area').value : 'in';
@@ -460,6 +469,24 @@ function initExtras() {
   if (CONFIG.pixelId) { !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js'); fbq('init', CONFIG.pixelId); fbq('track', 'PageView'); }
   if (CONFIG.gaId) { const g = document.createElement('script'); g.async = 1; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + CONFIG.gaId; document.head.appendChild(g); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); }; gtag('js', new Date()); gtag('config', CONFIG.gaId); }
 }
+/* ============ রিভিউ ও ফ্ল্যাশ সেল ============ */
+const live = p => (p.saleEnd && Date.parse(p.saleEnd) < Date.now() && p.oldPrice > p.price) ? { ...p, price: p.oldPrice, oldPrice: 0 } : p;
+const getP = id => { const p = products.find(x => x.id == id); return p && live(p); };
+const saleOn = p => FEATURES.flashSale && p.saleEnd && Date.parse(p.saleEnd) > Date.now() && p.oldPrice > p.price;
+const avg = p => p.reviews && p.reviews.length ? p.reviews.reduce((t, r) => t + r.rating, 0) / p.reviews.length : 0;
+const stars = p => FEATURES.reviews && avg(p) ? `<span class="cat">⭐ ${bn(avg(p).toFixed(1))} (${bn(p.reviews.length)})</span>` : '';
+const cdown = p => saleOn(p) ? `<div class="stk" data-end="${esc(p.saleEnd)}">⏱</div>` : '';
+setInterval(() => document.querySelectorAll('[data-end]').forEach(e => {
+  const d = Date.parse(e.dataset.end) - Date.now();
+  if (d <= 0) { e.removeAttribute('data-end'); render(); return; }
+  e.textContent = '⏱ অফার শেষ: ' + bn(Math.floor(d / 36e5)) + ' ঘ ' + bn(Math.floor(d % 36e5 / 6e4)) + ' মি ' + bn(Math.floor(d % 6e4 / 1e3)) + ' সে';
+}), 1000);
+function addReview(id) {
+  const p = products.find(x => x.id === id), name = prompt('কাস্টমারের নাম'); if (!name) return;
+  const rating = Math.min(5, Math.max(1, Math.round(+prompt('রেটিং (১ থেকে ৫, ইংরেজি সংখ্যায়)', '5') || 5)));
+  (p.reviews = p.reviews || []).push({ name, rating, text: prompt('কাস্টমারের মতামত') || '' }); save(); render(); view(id);
+}
+function delReview(id, i) { if (confirm('রিভিউ মুছবেন?')) { products.find(x => x.id === id).reviews.splice(i, 1); save(); render(); view(id); } }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeM('viewM'); closeM('formM'); } });
 load();
 </script>
