@@ -144,6 +144,8 @@ const CONFIG = {
   freeDeliveryOver: 0,       // এত টাকার বেশি কিনলে ডেলিভারি ফ্রি (0 = বন্ধ)
   bkash: "01968975869",      // bKash নম্বর (ঠিক আছে কিনা দেখে নিন)
   nagad: "01968975869",      // Nagad নম্বর
+  rocket: "01968975869",     // Rocket নম্বর (অ্যাপে শেষে বাড়তি ডিজিট দেখালে সেটা বসান)
+  upay: "01968975869",       // Upay নম্বর
   coupons: [{ code: "WELCOME10", percent: 10 }],   // নতুন কুপন এখানে যোগ করুন
   pixelId: "",               // Facebook Pixel ID (থাকলে বসান)
   gaId: "",                  // Google Analytics ID, যেমন G-XXXXXXX
@@ -388,6 +390,7 @@ function addSocial() {
 }
 function delSocial(i) { if (confirm('এই লিংক মুছবেন?')) { socials.splice(i, 1); save(); render(); } }
 /* ============ কার্ট, অর্ডার, পেমেন্ট ============ */
+const PAYN = { bkash: 'bKash', nagad: 'Nagad', rocket: 'Rocket', upay: 'Upay' };
 const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
 const cartSave = () => { localStorage.setItem('shop_cart', JSON.stringify(cart)); render(); };
 function track(ev, d) { try { window.fbq && fbq('track', ev, d || {}); window.gtag && gtag('event', ev, d || {}); } catch (e) {} }
@@ -427,7 +430,7 @@ function openCart() {
     <label>আপনার নাম</label><input id="c_name"><label>মোবাইল নম্বর</label><input id="c_phone" type="tel" placeholder="01XXXXXXXXX">
     <label>পুরো ঠিকানা</label><textarea id="c_addr" rows="2"></textarea>
     <label>ডেলিভারি এলাকা</label><select id="c_area" onchange="renderSum()"><option value="in">ঢাকার ভেতরে</option><option value="out">ঢাকার বাইরে</option></select>
-    <label>পেমেন্ট পদ্ধতি</label><select id="c_pay" onchange="renderSum()"><option value="cod">ক্যাশ অন ডেলিভারি</option><option value="bkash">bKash</option><option value="nagad">Nagad</option></select>
+    <label>পেমেন্ট পদ্ধতি</label><select id="c_pay" onchange="renderSum()"><option value="cod">ক্যাশ অন ডেলিভারি</option><option value="bkash">bKash</option><option value="nagad">Nagad</option><option value="rocket">Rocket</option><option value="upay">Upay</option></select>
     <div id="c_payinfo"></div><div id="c_trxw" style="display:none"><label>Transaction ID</label><input id="c_trx"></div>
     <div class="row"><button class="order alt" onclick="submitOrder()">অর্ডার নিশ্চিত করুন</button><button class="ghost" onclick="closeM('cartM')">বন্ধ</button></div>`;
     renderSum();
@@ -440,7 +443,7 @@ function renderSum() {
   $('c_sum').innerHTML = `<div><span>পণ্যের দাম</span><span>${m(t.sub)}</span></div><div><span>ডেলিভারি চার্জ</span><span>${t.dv ? m(t.dv) : 'ফ্রি'}</span></div>${t.disc ? `<div><span>কুপন ছাড়</span><span>−${m(t.disc)}</span></div>` : ''}<div class="tot"><span>সর্বমোট</span><span>${m(t.total)}</span></div>`;
   const pay = $('c_pay').value;
   $('c_trxw').style.display = pay === 'cod' ? 'none' : 'block';
-  $('c_payinfo').innerHTML = pay === 'cod' ? '<div class="pi">পণ্য হাতে পেয়ে টাকা দিন।</div>' : `<div class="pi">${pay === 'bkash' ? 'bKash' : 'Nagad'} (পার্সোনাল) নম্বর: <b>${esc(pay === 'bkash' ? CONFIG.bkash : CONFIG.nagad)}</b><br>"Send Money" করে <b>${m(t.total)}</b> পাঠান, তারপর নিচে Transaction ID দিন।</div>`;
+  $('c_payinfo').innerHTML = pay === 'cod' ? '<div class="pi">পণ্য হাতে পেয়ে টাকা দিন।</div>' : `<div class="pi">${PAYN[pay]} (পার্সোনাল) নম্বর: <b>${esc(CONFIG[pay])}</b><br>"Send Money" করে <b>${m(t.total)}</b> পাঠান, তারপর নিচে Transaction ID দিন।</div>`;
 }
 function applyCoupon() {
   const f = (CONFIG.coupons || []).find(x => x.code === ($('c_coupon').value || '').trim().toUpperCase());
@@ -454,7 +457,7 @@ function submitOrder() {
   const msg = ['🛒 নতুন অর্ডার', `নাম: ${name}`, `ফোন: ${phone}`, `ঠিকানা: ${addr}`, `এলাকা: ${$('c_area').value === 'in' ? 'ঢাকার ভেতরে' : 'ঢাকার বাইরে'}`, '', 'পণ্য:',
     ...t.it.map((i, n) => `${n + 1}. ${i.p.title} × ${i.q} = ${c}${(i.p.price || 0) * i.q}`), '',
     `পণ্যের দাম: ${c}${t.sub}`, `ডেলিভারি: ${c}${t.dv}`, t.disc ? `ছাড় (${coupon.code}): -${c}${t.disc}` : '', `সর্বমোট: ${c}${t.total}`,
-    `পেমেন্ট: ${pay === 'cod' ? 'ক্যাশ অন ডেলিভারি' : pay + ' (TrxID: ' + trx + ')'}`].filter(x => x !== '').join('\n');
+    `পেমেন্ট: ${pay === 'cod' ? 'ক্যাশ অন ডেলিভারি' : PAYN[pay] + ' (TrxID: ' + trx + ')'}`].filter(x => x !== '').join('\n');
   track('Purchase', { value: t.total, currency: 'BDT' });
   window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
   cart = {}; coupon = null; cartSave(); closeM('cartM'); toast('অর্ডার পাঠানো হয়েছে, ধন্যবাদ!');
